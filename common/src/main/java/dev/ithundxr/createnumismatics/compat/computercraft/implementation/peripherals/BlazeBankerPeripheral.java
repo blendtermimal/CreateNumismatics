@@ -4,12 +4,16 @@ import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import dev.ithundxr.createnumismatics.Numismatics;
+import dev.ithundxr.createnumismatics.content.bank.CardItem;
 import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import dev.ithundxr.createnumismatics.content.bank.blaze_banker.BlazeBankerBlockEntity;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import dev.ithundxr.createnumismatics.registry.NumismaticsItems;
+import net.minecraft.core.Direction;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -132,6 +136,46 @@ public class BlazeBankerPeripheral implements IPeripheral {
         return new Object[] { true, null };
     }
 
+    @LuaFunction(mainThread = true)
+    public final Object[] linkBlankCard(String sideName, int slot) throws LuaException {
+        UUID accountId = blockEntity.getAccountId();
+        if (accountId == null)
+            return new Object[] { false, "source account unavailable" };
+
+        Container container = getContainer(sideName);
+        int slotIndex = getSlotIndex(container, slot);
+        ItemStack stack = container.getItem(slotIndex);
+
+        if (stack.isEmpty())
+            return new Object[] { false, "slot is empty" };
+        if (!(stack.getItem() instanceof CardItem))
+            return new Object[] { false, "slot does not contain a card" };
+        if (CardItem.isBound(stack))
+            return new Object[] { false, "card is already linked" };
+
+        CardItem.set(stack, accountId);
+        container.setItem(slotIndex, stack);
+        container.setChanged();
+        return new Object[] { true, accountId.toString() };
+    }
+
+    @LuaFunction(mainThread = true)
+    public final boolean isLinkedCard(String sideName, int slot) throws LuaException {
+        Container container = getContainer(sideName);
+        int slotIndex = getSlotIndex(container, slot);
+        ItemStack stack = container.getItem(slotIndex);
+        return !stack.isEmpty() && stack.getItem() instanceof CardItem && CardItem.isBound(stack);
+    }
+
+    @LuaFunction(mainThread = true)
+    public final String getLinkedCardAccount(String sideName, int slot) throws LuaException {
+        Container container = getContainer(sideName);
+        int slotIndex = getSlotIndex(container, slot);
+        ItemStack stack = container.getItem(slotIndex);
+        UUID id = CardItem.get(stack);
+        return id == null ? null : id.toString();
+    }
+
     private boolean isTrustedCardPresent(UUID id) {
         for (int slot = 0; slot < blockEntity.trustListContainer.getContainerSize(); slot++) {
             UUID stackId = IDCardItem.get(blockEntity.trustListContainer.getItem(slot));
@@ -139,6 +183,28 @@ public class BlazeBankerPeripheral implements IPeripheral {
                 return true;
         }
         return false;
+    }
+
+    private Container getContainer(String sideName) throws LuaException {
+        if (blockEntity.getLevel() == null)
+            throw new LuaException("level unavailable");
+
+        Direction direction = Direction.byName(sideName);
+        if (direction == null)
+            throw new LuaException("invalid side");
+
+        BlockEntity adjacentBlockEntity = blockEntity.getLevel().getBlockEntity(blockEntity.getBlockPos().relative(direction));
+        if (!(adjacentBlockEntity instanceof Container container))
+            throw new LuaException("no inventory on that side");
+
+        return container;
+    }
+
+    private int getSlotIndex(Container container, int slot) throws LuaException {
+        int slotIndex = slot - 1;
+        if (slotIndex < 0 || slotIndex >= container.getContainerSize())
+            throw new LuaException("slot out of range");
+        return slotIndex;
     }
 
     @Nullable
