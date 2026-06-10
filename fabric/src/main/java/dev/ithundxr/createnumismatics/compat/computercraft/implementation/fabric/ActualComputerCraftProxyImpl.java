@@ -4,8 +4,10 @@ import dan200.computercraft.api.peripheral.PeripheralLookup;
 import dev.ithundxr.createnumismatics.compat.computercraft.ComputerCraftProxy;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.ComputerBehaviour;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BankTerminalPeripheral;
+import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BlazeBankerPeripheral;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BrassDepositorPeripheral;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.VendorPeripheral;
+import dev.ithundxr.createnumismatics.content.bank.blaze_banker.BlazeBankerBlockEntity;
 import dev.ithundxr.createnumismatics.content.depositor.BrassDepositorBlockEntity;
 import dev.ithundxr.createnumismatics.content.vendor.VendorBlockEntity;
 import dev.ithundxr.createnumismatics.registry.NumismaticsBlocks;
@@ -19,6 +21,8 @@ public class ActualComputerCraftProxyImpl {
                 return new BrassDepositorPeripheral(brassDepositor);
             if (blockEntity instanceof VendorBlockEntity vendor)
                 return new VendorPeripheral(vendor);
+            if (blockEntity instanceof BlazeBankerBlockEntity blazeBanker)
+                return new BlazeBankerPeripheral(blazeBanker);
             return ComputerBehaviour.peripheralProvider(level, blockPos);
         });
 
