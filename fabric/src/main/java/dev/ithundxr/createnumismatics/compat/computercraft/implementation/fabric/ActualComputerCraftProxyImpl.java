@@ -1,11 +1,13 @@
 package dev.ithundxr.createnumismatics.compat.computercraft.implementation.fabric;
 
+import dan200.computercraft.api.ComputerCraftAPI;
 import dan200.computercraft.api.peripheral.PeripheralLookup;
 import dev.ithundxr.createnumismatics.compat.computercraft.ComputerCraftProxy;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.ComputerBehaviour;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BankTerminalPeripheral;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BlazeBankerPeripheral;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.BrassDepositorPeripheral;
+import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.InventoryCardMethods;
 import dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals.VendorPeripheral;
 import dev.ithundxr.createnumismatics.content.bank.blaze_banker.BlazeBankerBlockEntity;
 import dev.ithundxr.createnumismatics.content.depositor.BrassDepositorBlockEntity;
@@ -15,6 +17,7 @@ import dev.ithundxr.createnumismatics.registry.NumismaticsBlocks;
 public class ActualComputerCraftProxyImpl {
     public static void registerWithDependency() {
         ComputerCraftProxy.computerFactory = ComputerBehaviour::new;
+        ComputerCraftAPI.registerGenericSource(new InventoryCardMethods());
 
         PeripheralLookup.get().registerFallback((level, blockPos, blockState, blockEntity, direction) -> {
             if (blockEntity instanceof BrassDepositorBlockEntity brassDepositor)
