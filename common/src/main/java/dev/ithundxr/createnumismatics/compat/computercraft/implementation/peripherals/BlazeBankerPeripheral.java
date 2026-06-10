@@ -3,6 +3,7 @@ package dev.ithundxr.createnumismatics.compat.computercraft.implementation.perip
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.bank.IDCardItem;
 import dev.ithundxr.createnumismatics.content.bank.blaze_banker.BlazeBankerBlockEntity;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
@@ -110,6 +111,27 @@ public class BlazeBankerPeripheral implements IPeripheral {
         return false;
     }
 
+    @LuaFunction(mainThread = true)
+    public final Object[] transferTo(String destinationAccountId, int amount) throws LuaException {
+        if (amount <= 0)
+            throw new LuaException("amount must be positive");
+
+        BankAccount source = blockEntity.getAccount();
+        if (source == null)
+            return new Object[] { false, "source account unavailable" };
+
+        BankAccount destination = getBankAccount(destinationAccountId);
+        if (destination == null)
+            return new Object[] { false, "destination account not found" };
+
+        if (!source.deduct(amount))
+            return new Object[] { false, "insufficient funds" };
+
+        destination.deposit(amount);
+        blockEntity.notifyUpdate();
+        return new Object[] { true, null };
+    }
+
     private boolean isTrustedCardPresent(UUID id) {
         for (int slot = 0; slot < blockEntity.trustListContainer.getContainerSize(); slot++) {
             UUID stackId = IDCardItem.get(blockEntity.trustListContainer.getItem(slot));
@@ -117,6 +139,12 @@ public class BlazeBankerPeripheral implements IPeripheral {
                 return true;
         }
         return false;
+    }
+
+    @Nullable
+    private BankAccount getBankAccount(String accountId) throws LuaException {
+        UUID id = parseUuid(accountId);
+        return Numismatics.BANK.getAccount(id);
     }
 
     private UUID parseUuid(String uuid) throws LuaException {
