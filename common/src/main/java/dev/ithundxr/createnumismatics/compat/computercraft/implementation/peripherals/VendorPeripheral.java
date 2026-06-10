@@ -1,14 +1,17 @@
 package dev.ithundxr.createnumismatics.compat.computercraft.implementation.peripherals;
 
-import com.simibubi.create.compat.computercraft.implementation.peripherals.SyncedPeripheral;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
+import dan200.computercraft.api.peripheral.IPeripheral;
 import dev.ithundxr.createnumismatics.content.backend.Coin;
 import dev.ithundxr.createnumismatics.content.vendor.VendorBlockEntity;
+import org.jetbrains.annotations.Nullable;
 
-public class VendorPeripheral extends SyncedPeripheral<VendorBlockEntity> {
+public class VendorPeripheral implements IPeripheral {
+    private final VendorBlockEntity blockEntity;
+
     public VendorPeripheral(VendorBlockEntity blockEntity) {
-        super(blockEntity);
+        this.blockEntity = blockEntity;
     }
 
     @LuaFunction(mainThread = true)
@@ -50,5 +53,10 @@ public class VendorPeripheral extends SyncedPeripheral<VendorBlockEntity> {
     @Override
     public String getType() {
         return "Numismatics_Vendor";
+    }
+
+    @Override
+    public boolean equals(@Nullable IPeripheral other) {
+        return this == other;
     }
 }
