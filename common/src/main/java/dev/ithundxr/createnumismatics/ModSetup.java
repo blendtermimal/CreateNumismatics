@@ -1,5 +1,6 @@
 package dev.ithundxr.createnumismatics;
 
+import dev.ithundxr.createnumismatics.compat.computercraft.ComputerCraftProxy;
 import dev.ithundxr.createnumismatics.registry.*;
 
 public class ModSetup {
@@ -10,5 +11,7 @@ public class ModSetup {
         NumismaticsBlocks.register();
         NumismaticsMenuTypes.register();
         NumismaticsTags.register();
+
+        ComputerCraftProxy.register();
     }
 }
